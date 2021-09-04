@@ -91,9 +91,9 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  double Current_LSB = 9.53674;
+  //double Current_LSB = 9.53674;
   ina229_Init();
-  ina229_SetCalibration(2600);
+  ina229_SetCalibration(2030);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,12 +102,12 @@ int main(void)
   {
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
-	  int32_t current = (int32_t)(Current_LSB * (double)ina230_GetCurrent() / 1000);
+	  int32_t current = ((5*100*(ina230_GetCurrent() >> 10))>>9);
+	  int32_t vbus = ina229_GetVBus();
 	  char testchar[30];
-	  sprintf(testchar,"%ld", current);
+	  sprintf(testchar,"%ld,%ld",vbus, current);
 	  debugPrintln(testchar);
 	  HAL_Delay(100);
-
   }
   /* USER CODE END 3 */
 }

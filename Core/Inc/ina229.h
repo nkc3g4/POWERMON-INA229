@@ -202,3 +202,5 @@ uint16_t ina229_ReadDeviceID();
 void ina229_SetCalibration(uint16_t Calibration);
 uint16_t ina230_GetCalibration(uint16_t Address);
 int32_t ina230_GetCurrent();
+uint32_t ina229_GetVBus();
+int32_t ina229_GetVShunt(uint8_t ADCRange);

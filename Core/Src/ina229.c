@@ -1,7 +1,10 @@
 #include "spi.h"
 #include "ina229.h"
 
-#define BUS_VOLTAGE_LSB 195.3125
+
+
+#define DIV_ROUND_CLOSEST(__DIVIDEND__, __DIVISOR__) (((__DIVIDEND__) + ((__DIVISOR__)/2)) / (__DIVISOR__))
+
 
 uint16_t ina229_ReadReg_16(uint16_t Address)
 {
@@ -20,7 +23,7 @@ uint32_t ina229_ReadReg_24(uint16_t Address)
   uint8_t dt[3];
 
   ReadRegister_24(Address,dt);
-  data = (dt[0] << 16) | (dt[1] << 8) | dt[0];
+  data = (dt[0] << 16) | (dt[1] << 8) | dt[2];
 
   return data;
 }
@@ -95,5 +98,42 @@ uint16_t ina230_GetCalibration(uint16_t Address)
 
 int32_t ina230_GetCurrent()
 {
-  return (int32_t)ina229_ReadReg_24(INA229_REG_CURRENT);
+  int32_t current = ((int32_t)(ina229_ReadReg_24(INA229_REG_CURRENT) << 8)) >> 8;
+
+  return current;
+}
+
+
+/**
+  * @brief  Read the bus voltage
+  * @param  Address INA229 address on communication Bus.
+  * @retval BusVoltage Bus voltage value (in mV)
+  */
+uint32_t ina229_GetVBus()
+{
+  uint32_t val;
+  uint32_t vbus;
+  val = ina229_ReadReg_24(INA229_REG_VBUS) >> 4;
+  vbus = (val * 3125 >> 4);
+  vbus = DIV_ROUND_CLOSEST(vbus, 1000);
+  return (uint32_t)vbus;
+}
+
+
+
+/**
+  * @brief  Read the shunt voltage
+  * @param  Address INA229 address on communication Bus.
+  * @retval VShunt Shunt voltage value (in mV)
+  */
+int32_t ina229_GetVShunt(uint8_t ADCRange)
+{
+  int32_t val;
+  int32_t vshunt;
+  val = ina229_ReadReg_24(INA229_REG_VSHUNT);
+  if(ADCRange ==0 )
+	  vshunt = val * 625 >> 1;
+  else
+	  vshunt = val * 625 >> 3;
+  return vshunt;
 }
