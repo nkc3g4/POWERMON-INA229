@@ -61,7 +61,7 @@ void ina229_Init()
   ina229_Reset();
 
   /* Set INA230 configuration */
-  cfg = INA229_MODE_CONTINOUS_VBUS_VSHUNT | INA229_VBUSCT_1052 | INA229_VSHCT_1052 | INA229_VTCT_1052 | INA229_AVG_64;
+  cfg = INA229_MODE_CONTINOUS_VBUS_VSHUNT | INA229_VBUSCT_1052 | INA229_VSHCT_1052 | INA229_VTCT_1052 | INA229_AVG_16;
   //cfg = (cfg & ((uint16_t)~(INA229_REG_ADC_CONFIG_MODE_Msk))) | (pConfig->ShuntConvertTime << INA229_REG_ADC_CONFIG_MODE_Pos);
   //cfg = (cfg & ((uint16_t)~(INA229_REG_ADC_CONFIG_VBUSCT_Msk))) | (pConfig->BusConvertTime << INA229_REG_ADC_CONFIG_VBUSCT_Pos);
   //cfg = (cfg & ((uint16_t)~(INA229_REG_ADC_CONFIG_VSHCT_Msk))) | (pConfig->AveragingMode << INA229_REG_ADC_CONFIG_VSHCTPos);

@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -27,11 +28,14 @@
 /* USER CODE BEGIN Includes */
 #include "ina229.h"
 #include <stdio.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+char CMD_ON[] = "ON";
+char CMD_OFF[] = "OF";
+uint8_t USART_rxBuffer[2] = {0};
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -90,10 +94,18 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   MX_USART1_UART_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  //double Current_LSB = 9.53674;
   ina229_Init();
   ina229_SetCalibration(2030);
+
+
+
+  __HAL_TIM_CLEAR_IT(&htim1, TIM_IT_UPDATE);
+  HAL_TIM_Base_Start_IT(&htim1);
+  HAL_UART_Receive_IT(&huart1, USART_rxBuffer, 2);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -101,13 +113,10 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
-	  int32_t current = ((5*100*(ina230_GetCurrent() >> 10))>>9);
-	  int32_t vbus = ina229_GetVBus();
-	  char testchar[30];
-	  sprintf(testchar,"%ld,%ld",vbus, current);
-	  debugPrintln(testchar);
-	  HAL_Delay(100);
+
+	  //HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
@@ -165,7 +174,33 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIM1)
+	{
+		  int32_t current = ((5*100*(ina230_GetCurrent() >> 10))>>9);
+		  int32_t vbus = ina229_GetVBus();
+		  char testchar[30];
+		  sprintf(testchar,"%ld,%ld",vbus, current);
+		  debugPrintln(testchar);
+	}
+}
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (strcmp((const char *)USART_rxBuffer, CMD_ON) == 0)
+	{
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
+	}
+	else if (strcmp((const char *)USART_rxBuffer, CMD_OFF) == 0)
+	{
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
+	}else{
+		//debugPrintln((char *)USART_rxBuffer);
+	}
+    HAL_UART_Receive_IT(huart, USART_rxBuffer, 2);
+}
 /* USER CODE END 4 */
 
 /**
